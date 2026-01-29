@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 function CategoryPage() {
   const [algorithms, setAlgorithms] = useState([]);
@@ -10,29 +11,29 @@ function CategoryPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchAlgorithms = async () => {
+      try {
+        // First fetch all categories to get the category name
+        const categoriesResponse = await fetch(`${API_BASE_URL}/api/categories`);
+        const categories = await categoriesResponse.json();
+        const category = categories.find(c => c.id === categoryId);
+        
+        if (category) {
+          setCategoryName(category.name);
+          setAlgorithms(category.algorithms);
+        } else {
+          throw new Error('Category not found');
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+    
     fetchAlgorithms();
   }, [categoryId]);
-
-  const fetchAlgorithms = async () => {
-    try {
-      // First fetch all categories to get the category name
-      const categoriesResponse = await fetch('http://localhost:8080/api/categories');
-      const categories = await categoriesResponse.json();
-      const category = categories.find(c => c.id === categoryId);
-      
-      if (category) {
-        setCategoryName(category.name);
-        setAlgorithms(category.algorithms);
-      } else {
-        throw new Error('Category not found');
-      }
-      
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
